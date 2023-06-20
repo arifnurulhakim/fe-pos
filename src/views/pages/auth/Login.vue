@@ -21,21 +21,25 @@ const login = async () => {
     const response = await axios.post('api/login', {
       email: email.value,
       password: password.value
-    }); 
-  
-    // Jika respons status sukses
+    });
+
     if (response.data.status === "success") {
-      const token = response.data.token;
+      const token = response.data.data.token;
       localStorage.setItem('token', token);
-      
-      // Navigasi ke halaman dashboard
+
+      // Set the token in the Axios default headers
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      // Navigate to the dashboard page
       router.push('/Dashboard');
+    } else {
+      console.error(response.data.message);
     }
   } catch (error) {
-    // Tangani error saat proses login
     console.error(error);
   }
 };
+
 </script>
 
 
@@ -44,13 +48,13 @@ const login = async () => {
 <template>
     <div class="surface-ground flex align-items-center justify-content-center min-h-screen min-w-screen overflow-hidden">
         <div class="flex flex-column align-items-center justify-content-center">
-            <img :src="logoUrl" alt="Sakai logo" class="mb-5 w-6rem flex-shrink-0" />
+            
             <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)">
                 <div class="w-full surface-card py-8 px-5 sm:px-8" style="border-radius: 53px">
                     <div class="text-center mb-5">
-                        <img src="/demo/images/login/avatar.png" alt="Image" height="50" class="mb-3" />
-                        <div class="text-900 text-3xl font-medium mb-3">Welcome, Isabel!</div>
-                        <span class="text-600 font-medium">Sign in to continue</span>
+                        <img src="/demo/images/login/kominfoo.png" alt="Image" height="100" class="mb-3" />
+                        <h1>KEMKOMINFO RI</h1>
+          <h5>Menuju Masyarakat Informasi Indonesia</h5>
                     </div>
 
                     <div>

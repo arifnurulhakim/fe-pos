@@ -15,27 +15,55 @@ const selectedDesas = ref(null);
 const dt = ref(null);
 const filters = ref({});
 const submitted = ref(false);
+const perPage = ref(10);
+const currentPage = ref(1);
+const totalData = ref(0);
+const loading = ref(false);
+const loadingIcon = 'pi pi-spin pi-spinner';
 
 onBeforeMount(() => {
-    initFilters();
+  initFilters();
 });
 
 onMounted(() => {
-    getDesaData();
+  getDesaData();
 });
 
 const getDesaData = () => {
-    axios
-        .get('api/desa')
-        .then((response) => {
-            if (response.data.status === 'success') {
-                desas.value = response.data.data;
-            }
-        })
-        .catch((error) => {
-            console.error(error);
-        });
+  loading.value = true;
+  axios
+    .get('api/desa', {
+      params: {
+        perPage: perPage.value,
+        currentPage: currentPage.value,
+      },
+    })
+    .then((response) => {
+      if (response.data.status === 'success') {
+        desas.value = response.data.data;
+        totalData.value = response.data.total_data;
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to fetch data',
+        life: 3000,
+      });
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
+
+const handlePageChange = (event) => {
+  currentPage.value = event.page + 1;
+  perPage.value = event.rows;
+  getDesaData();
+};
+
 
 const openNew = () => {
     desa.value = {};
@@ -172,18 +200,23 @@ const initFilters = () => {
                 </Toolbar>
 
                 <DataTable
-                    ref="dt"
-                    :value="desas"
-                    v-model:selection="selectedDesas"
-                    dataKey="id"
-                    :paginator="true"
-                    :rows="10"
-                    :filters="filters"
-                    paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                    :rowsPerPageOptions="[5, 10, 25]"
-                    currentPageReportTemplate="Showing {first} to {last} of {totalRecords} desas"
-                    responsiveLayout="scroll"
-                    >
+  ref="dt"
+  :value="desas"
+  v-model:selection="selectedDesas"
+  dataKey="id"
+  :paginator="true"
+  :rows="perPage"
+  :currentPage="currentPage"
+  :filters="filters"
+  paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+  :rowsPerPageOptions="[5, 10, 25]"
+  :totalRecords="totalData"
+  :loading="loading"
+  :currentPageReportTemplate="'Showing {first} to {last} of ' + totalData + ' provinsis'"
+  :loadingIcon="loadingIcon"
+  @page="handlePageChange"
+>
+
                     <template #header>
                         <div class="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
                         <h5 class="m-0">Desa</h5>

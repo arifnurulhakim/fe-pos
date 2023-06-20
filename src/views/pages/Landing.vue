@@ -2,9 +2,9 @@
 import { useLayout } from '@/layout/composables/layout';
 import { computed } from 'vue';
 import AppConfig from '@/layout/AppConfig.vue';
-
+import { useRouter } from 'vue-router';
 const { layoutConfig } = useLayout();
-
+const router = useRouter();
 const smoothScroll = (id) => {
     document.querySelector(id).scrollIntoView({
         behavior: 'smooth'
@@ -12,15 +12,28 @@ const smoothScroll = (id) => {
 };
 
 const logoUrl = computed(() => {
-    return `layout/images/${layoutConfig.darkTheme.value ? 'logo-white' : 'logo-dark'}.svg`;
+    return router.resolve({ name: 'landing' }).href;
 });
+const redirectToLogin = () => {
+    router.push({ name: 'login' });
+};
+const redirectToRegister = () => {
+    router.push({ name: 'register' });
+};
+
 </script>
 
 <template>
     <div class="surface-0 flex justify-content-center">
         <div id="home" class="landing-wrapper overflow-hidden">
             <div class="py-4 px-4 mx-0 md:mx-6 lg:mx-8 lg:px-8 flex align-items-center justify-content-between relative lg:static mb-3">
-                <a class="flex align-items-center" href="#"> <img :src="logoUrl" alt="Sakai Logo" height="50" class="mr-0 lg:mr-2" /><span class="text-900 font-medium text-2xl line-height-3 mr-8">SAKAI</span> </a>
+                <a class="flex align-items-center w-full" :href="logoUrl">
+          <img src="/demo/images/login/kominfoo.png" alt="logo" height="50" class="mr-0 lg:mr-2" />
+          <div class="layout-topbar-content w-full">
+            <h1>KEMKOMINFO RI</h1>
+            <h5>Menuju Masyarakat Informasi Indonesia</h5>
+          </div>
+        </a>
                 <a class="cursor-pointer block lg:hidden text-700 p-ripple" v-ripple v-styleclass="{ selector: '@next', enterClass: 'hidden', leaveToClass: 'hidden', hideOnOutsideClick: true }">
                     <i class="pi pi-bars text-4xl"></i>
                 </a>
@@ -48,8 +61,11 @@ const logoUrl = computed(() => {
                         </li>
                     </ul>
                     <div class="flex justify-content-between lg:block border-top-1 lg:border-top-none surface-border py-3 lg:py-0 mt-3 lg:mt-0">
-                        <Button label="Login" class="p-button-text p-button-rounded border-none font-light line-height-2 text-blue-500"></Button>
-                        <Button label="Register" class="p-button-rounded border-none ml-5 font-light text-white line-height-2 bg-blue-500"></Button>
+                        <Button label="Login" :onClick="redirectToLogin" class="p-button-text p-button-rounded border-none font-light line-height-2 text-blue-500"></Button>
+
+
+
+                        <Button label="Register" :onClick="redirectToRegister" class="p-button-rounded border-none ml-5 font-light text-white line-height-2 bg-blue-500"></Button>
                     </div>
                 </div>
             </div>

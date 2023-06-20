@@ -11,9 +11,8 @@ const logoUrl = computed(() => {
 
 <template>
     <div class="layout-footer">
-        <img :src="logoUrl" alt="Logo" height="20" class="mr-2" />
-        by
-        <span class="font-medium ml-2">PrimeVue</span>
+        <img src="/demo/images/login/logo2.png" alt="Logo" height="20" class="mr-2" />
+       
     </div>
 </template>
 <style lang="scss" scoped></style>

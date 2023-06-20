@@ -7,8 +7,9 @@ const router = createRouter({
         
         {
             path: '/',
-            redirect: '/auth/login',
+            redirect: '/landing',
             component: AppLayout,
+ 
             children: [
                 {
                     path: '/dashboard',
@@ -167,6 +168,21 @@ const router = createRouter({
                     path: '/pages/kodepos',
                     name: 'kodepos',
                     component: () => import('@/views/pages/Kodepos.vue')
+                },
+                {
+                    path: '/pages/pengiriman',
+                    name: 'pengiriman',
+                    component: () => import('@/views/pages/Pengiriman.vue')
+                },
+                {
+                    path: '/pages/user',
+                    name: 'user',
+                    component: () => import('@/views/pages/user.vue')
+                },
+                {
+                    path: '/pages/userlog',
+                    name: 'userlog',
+                    component: () => import('@/views/pages/userlog.vue')
                 },
                 {
                     path: '/documentation',

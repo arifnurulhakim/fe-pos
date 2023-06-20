@@ -16,6 +16,11 @@ const dt = ref(null);
 const filters = ref({});
 const submitted = ref(false);
 
+const qrcodes = ref(null);
+const base64Image = ref({});
+const imageUrl = ref(null);
+const qrcodekodeposDialog = ref(false);
+
 onBeforeMount(() => {
     initFilters();
 });
@@ -50,13 +55,13 @@ const hideDialog = () => {
 
 const saveKodepos = async () => {
     submitted.value = true;
-    if (kodepos.value.kode_dagri && kodepos.value.kode_old && kodepos.value.kode_mod && kodepos.value.kode_new && kodepos.value.kode_desa && kodepos.value.kode_kec && kodepos.value.kode_kab && kodepos.value.kode_prov ){
+    if (kodepos.value.kode_desa && kodepos.value.kode_old && kodepos.value.kode_mod && kodepos.value.kode_new && kodepos.value.kode_desa && kodepos.value.kode_kec && kodepos.value.kode_kab && kodepos.value.kode_prov ){
         console.log(kodepos.value.id);
       if (kodepos.value.id) {
         const index = findIndexById(kodepos.value.id);
         kodeposs.value[index] = kodepos.value;
         await axios.put(`/api/kode-pos/${kodepos.value.id}`, {
-          kode_dagri: kodepos.value.kode_dagri,
+          kode_desa: kodepos.value.kode_desa,
           kode_old: kodepos.value.kode_old,
           kode_mod: kodepos.value.kode_mod,
           kode_new: kodepos.value.kode_new,
@@ -71,7 +76,7 @@ const saveKodepos = async () => {
       } else {
         kodeposs.value.push(kodepos.value);
         await axios.post('/api/kode-pos', {
-          kode_dagri: kodepos.value.kode_dagri,
+          kode_desa: kodepos.value.kode_desa,
           kode_old: kodepos.value.kode_old,
           kode_mod: kodepos.value.kode_mod,
           kode_new: kodepos.value.kode_new,
@@ -157,6 +162,28 @@ const initFilters = () => {
         global: { value: null, matchMode: FilterMatchMode.CONTAINS },
     };
 };
+const generateQRCodeModal = (generateQRCodeModal) => {
+  kodepos.value = { ...generateQRCodeModal };
+
+  axios
+    .get(`/api/kode-pos/qrcode/${kodepos.value.id}`)
+    .then((response) => {
+      qrcodes.value = response.data;
+      console.log(qrcodes);
+      base64Image.value = response.data.data.qrCode;
+
+      console.log(base64Image);
+      // imageUrl = `data:image/png;base64,${base64Image}`; // Adding the prefix "data:image/png;base64," to the base64 image URL
+      qrcodekodeposDialog.value = true;
+
+      // Assigning imageUrl to the imageUrl property
+      generateQRCodeModal.imageUrl = imageUrl;
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+};
+
 </script>
 
 <template>
@@ -201,7 +228,13 @@ const initFilters = () => {
                         </div>
                     </template>
 
-                    <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
+                    <Column headerStyle="min-width:5rem;">
+                        <template #body="slotProps">
+                            <Button icon="pi pi-qrcode" class="p-button-rounded p-button-info mt-3" @click="generateQRCodeModal(slotProps.data)" />
+                            
+                        </template>
+
+                    </Column>
                     <Column field="kode_dagri" header="kode dagri" :sortable="true" headerStyle="width:40%; min-width:10rem;">
                         <template #body="slotProps">
                         <span class="p-column-title">Kode Dagri</span>
@@ -224,30 +257,6 @@ const initFilters = () => {
                         <template #body="slotProps">
                         <span class="p-column-title">Kode pos baru</span>
                         {{ slotProps.data.kode_new }}
-                        </template>
-                    </Column>
-                    <Column field="kode_desa" header="kode desa" :sortable="true" headerStyle="width:40%; min-width:10rem;">
-                        <template #body="slotProps">
-                        <span class="p-column-title">Kode Desa</span>
-                        {{ slotProps.data.kode_desa }}
-                        </template>
-                    </Column>
-                    <Column field="kode_kec" header="kode kecamatan" :sortable="true" headerStyle="width:40%; min-width:10rem;">
-                        <template #body="slotProps">
-                        <span class="p-column-title">Kode Kecamatan</span>
-                        {{ slotProps.data.kode_kec }}
-                        </template>
-                    </Column>
-                    <Column field="kode_kab" header="kode kabupaten" :sortable="true" headerStyle="width:40%; min-width:10rem;">
-                        <template #body="slotProps">
-                        <span class="p-column-title">Kode Kabupaten</span>
-                        {{ slotProps.data.kode_kab }}
-                        </template>
-                    </Column>
-                    <Column field="kode_prov" header="kode provinsi" :sortable="true" headerStyle="width:40%; min-width:10rem;">
-                        <template #body="slotProps">
-                        <span class="p-column-title">Kode Provinsi</span>
-                        {{ slotProps.data.kode_prov }}
                         </template>
                     </Column>
                     <Column field="nama_desa" header="nama desa" :sortable="true" headerStyle="width:40%; min-width:10rem;">
@@ -282,12 +291,24 @@ const initFilters = () => {
                         </template>
                     </Column>
                     </DataTable>
+                    <Dialog v-model:visible="qrcodekodeposDialog" :style="{ width: '450px' }" header="Kodepos Details" :modal="true" class="p-fluid">
+                        <div class="col-12">
+                          <div class="card">
+                            <h5>DataView</h5>
+                            <div class="data-container">
+                              <img v-bind:src="'data:image/;base64,' + qrcodes.data.qrCode.base64" />
+
+                              <!--  -->
+                            </div>
+                          </div>
+                        </div>
+                      </Dialog>
 
                     <Dialog v-model:visible="kodeposDialog" :style="{ width: '450px' }" header="Kodepos Details" :modal="true" class="p-fluid">
                     <div class="field">
-                        <label for="kode_dagri">Kode Dagri</label>
-                        <InputText id="kode_dagri" v-model.trim="kodepos.kode_dagri" required="true" autofocus :class="{ 'p-invalid': submitted && !kodepos.kode_desa    }" />
-                        <small class="p-invalid" v-if="submitted && !kodepos.kode_dagri">Kode desa is required.</small>
+                        <label for="kode_desa">Kode Dagri</label>
+                        <InputText id="kode_desa" v-model.trim="kodepos.kode_desa" required="true" autofocus :class="{ 'p-invalid': submitted && !kodepos.kode_desa    }" />
+                        <small class="p-invalid" v-if="submitted && !kodepos.kode_desa">Kode desa is required.</small>
                     </div>
                     <div class="field">
                         <label for="kode_old">Kode Lama</label>

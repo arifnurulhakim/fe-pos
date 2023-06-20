@@ -213,6 +213,20 @@ app.component('VirtualScroller', VirtualScroller);
 
 import axios from 'axios';
 
-axios.defaults.baseURL = "http://127.0.0.1:8000/";
+axios.defaults.baseURL = "https://sistemkodeposkominfo.com/public/";
+const token = localStorage.getItem('token');
+if (token) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+}
+axios.interceptors.response.use(
+    response => response,
+    error => {
+      if (error.response && error.response.status === 401) {
+        // Jika respons status adalah 401 (Unauthenticated), arahkan pengguna ke halaman login
+        router.push('/auth/login');
+      }
+      return Promise.reject(error);
+    }
+  );
 
 app.mount('#app');
