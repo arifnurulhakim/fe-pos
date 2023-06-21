@@ -1,45 +1,89 @@
 <script setup>
 import { useLayout } from '@/layout/composables/layout';
-import { computed } from 'vue';
+import { computed, ref, onMounted, reactive } from 'vue';
 import AppConfig from '@/layout/AppConfig.vue';
 import { useRouter } from 'vue-router';
+import { defineProps } from 'vue';
+import axios from 'axios';
+
 const { layoutConfig } = useLayout();
 const router = useRouter();
+
+const { provinsi, kabupaten, kecamatan, desa } = defineProps({
+  provinsi: {
+    type: String,
+    required: true
+  },
+  kabupaten: {
+    type: String,
+    required: true
+  },
+  kecamatan: {
+    type: String,
+    required: true
+  },
+  desa: {
+    type: String,
+    required: true
+  }
+});
+
 const smoothScroll = (id) => {
-    document.querySelector(id).scrollIntoView({
-        behavior: 'smooth'
-    });
+  document.querySelector(id).scrollIntoView({
+    behavior: 'smooth'
+  });
 };
 
 const logoUrl = computed(() => {
-    return router.resolve({ name: 'landing' }).href;
+  return router.resolve({ name: 'landing' }).href;
 });
+
 const redirectToLogin = () => {
-    router.push({ name: 'login' });
+  router.push({ name: 'login' });
 };
-const redirectToRegister = () => {
-    router.push({ name: 'register' });
+
+const datakodepos = ref({});
+const kode_dagri = ref(null);
+
+const getKodepos = () => {
+  const url = `/api/kode-pos/${provinsi}/${kabupaten}/${kecamatan}/${desa}`;
+
+  axios.get(url)
+    .then(response => {
+      datakodepos.value = response.data.data;
+    //   kode_dagri.value = datakodepos.kode_dagri; // Access property correctly
+    //   console.log( kode_dagri.value );
+    })
+    .catch(error => {
+      console.error(error);
+    });
 };
+
+onMounted(() => {
+  getKodepos();
+});
+
+// console.log(provinsi, kabupaten, kecamatan, desa);
+// console.log(datakodepos.value); 
 
 </script>
-
 <template>
     <div class="surface-0 flex justify-content-center">
         <div id="home" class="landing-wrapper overflow-hidden">
             <div class="py-4 px-4 mx-0 md:mx-6 lg:mx-8 lg:px-8 flex align-items-center justify-content-between relative lg:static mb-3">
                 <a class="flex align-items-center w-full" :href="logoUrl">
-          <img src="/demo/images/login/kominfoo.png" alt="logo" height="50" class="mr-0 lg:mr-2" />
-          <div class="layout-topbar-content w-full">
-            <h1>KEMKOMINFO RI</h1>
-            <h5>Menuju Masyarakat Informasi Indonesia</h5>
-          </div>
-        </a>
+                    <img src="/demo/images/login/kominfoo.png" alt="logo" height="50" class="mr-0 lg:mr-2" />
+                    <div class="layout-topbar-content w-full">
+                        <h1>KEMKOMINFO RI</h1>
+                        <h5>Menuju Masyarakat Informasi Indonesia</h5>
+                    </div>
+                 </a>
                 <a class="cursor-pointer block lg:hidden text-700 p-ripple" v-ripple v-styleclass="{ selector: '@next', enterClass: 'hidden', leaveToClass: 'hidden', hideOnOutsideClick: true }">
                     <i class="pi pi-bars text-4xl"></i>
                 </a>
                 <div class="align-items-center surface-0 flex-grow-1 justify-content-between hidden lg:flex absolute lg:static w-full left-0 px-6 lg:px-0 z-2" style="top: 120px">
                     <ul class="list-none p-0 m-0 flex lg:align-items-center select-none flex-column lg:flex-row cursor-pointer">
-                        <li>
+                        <!-- <li>
                             <a @click="smoothScroll('#hero')" class="flex m-0 md:ml-5 px-0 py-3 text-900 font-medium line-height-3 p-ripple" v-ripple>
                                 <span>Home</span>
                             </a>
@@ -58,19 +102,19 @@ const redirectToRegister = () => {
                             <a @click="smoothScroll('#pricing')" class="flex m-0 md:ml-5 px-0 py-3 text-900 font-medium line-height-3 p-ripple" v-ripple>
                                 <span>Pricing</span>
                             </a>
-                        </li>
+                        </li> -->
                     </ul>
                     <div class="flex justify-content-between lg:block border-top-1 lg:border-top-none surface-border py-3 lg:py-0 mt-3 lg:mt-0">
-                        <Button label="Login" :onClick="redirectToLogin" class="p-button-text p-button-rounded border-none font-light line-height-2 text-blue-500"></Button>
+                        <Button label="Login" :onClick="redirectToLogin" class="p-button-rounded border-none ml-5 font-light text-white line-height-2 bg-blue-500"></Button>
 
 
 
-                        <Button label="Register" :onClick="redirectToRegister" class="p-button-rounded border-none ml-5 font-light text-white line-height-2 bg-blue-500"></Button>
+                        <!-- <Button label="Register" :onClick="redirectToRegister" class="p-button-rounded border-none ml-5 font-light text-white line-height-2 bg-blue-500"></Button> -->
                     </div>
                 </div>
             </div>
 
-            <div
+            <!-- <div
                 id="hero"
                 class="flex flex-column pt-4 px-4 lg:px-8 overflow-hidden"
                 style="background: linear-gradient(0deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2)), radial-gradient(77.36% 256.97% at 77.36% 57.52%, rgb(238, 239, 175) 0%, rgb(195, 227, 250) 100%); clip-path: ellipse(150% 87% at 93% 13%)"
@@ -78,14 +122,16 @@ const redirectToRegister = () => {
                 <div class="mx-4 md:mx-8 mt-0 md:mt-4">
                     <h1 class="text-6xl font-bold text-gray-900 line-height-2"><span class="font-light block">Eu sem integer</span>eget magna fermentum</h1>
                     <p class="font-normal text-2xl line-height-3 md:mt-3 text-gray-700">Sed blandit libero volutpat sed cras. Fames ac turpis egestas integer. Placerat in egestas erat...</p>
-                    <Button label="Get Started" class="p-button-rounded text-xl border-none mt-5 bg-blue-500 font-normal text-white line-height-3 px-3"></Button>
+          
+
+
                 </div>
                 <div class="flex justify-content-center md:justify-content-end">
                     <img src="/demo/images/landing/screen-1.png" alt="Hero Image" class="w-9 md:w-auto" />
                 </div>
-            </div>
+            </div> -->
 
-            <div id="features" class="py-4 px-4 lg:px-8 mt-5 mx-0 lg:mx-8">
+            <!-- <div id="features" class="py-4 px-4 lg:px-8 mt-5 mx-0 lg:mx-8">
                 <div class="grid justify-content-center">
                     <div class="col-12 text-center mt-8 mb-4">
                         <h2 class="text-900 font-normal mb-2">Marvelous Features</h2>
@@ -232,55 +278,54 @@ const redirectToRegister = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <div id="highlights" class="py-4 px-4 lg:px-8 mx-0 my-6 lg:mx-8">
                 <div class="text-center">
-                    <h2 class="text-900 font-normal mb-2">Powerful Everywhere</h2>
-                    <span class="text-600 text-2xl">Amet consectetur adipiscing elit...</span>
+                    <h2 class="text-900 font-normal mb-2">Details</h2>
+                    <!-- <span class="text-600 text-2xl">Amet consectetur adipiscing elit...</span> -->
                 </div>
 
-                <div class="grid mt-8 pb-2 md:pb-8">
-                    <div class="flex justify-content-center col-12 lg:col-6 bg-purple-100 p-0 flex-order-1 lg:flex-order-0" style="border-radius: 8px">
-                        <img src="/demo/images/landing/mockup.svg" class="w-11" alt="mockup mobile" />
-                    </div>
-
-                    <div class="col-12 lg:col-6 my-auto flex flex-column lg:align-items-end text-center lg:text-right">
-                        <div class="flex align-items-center justify-content-center bg-purple-200 align-self-center lg:align-self-end" style="width: 4.2rem; height: 4.2rem; border-radius: 10px">
-                            <i class="pi pi-fw pi-mobile text-5xl text-purple-700"></i>
-                        </div>
-                        <h2 class="line-height-1 text-900 text-4xl font-normal">Congue Quisque Egestas</h2>
-                        <span class="text-700 text-2xl line-height-3 ml-0 md:ml-2" style="max-width: 650px"
-                            >Lectus arcu bibendum at varius vel pharetra vel turpis nunc. Eget aliquet nibh praesent tristique magna sit amet purus gravida. Sit amet mattis vulputate enim nulla aliquet.</span
-                        >
-                    </div>
-                </div>
-
-                <div class="grid my-8 pt-2 md:pt-8">
+                <div class="py-4 px-4 mx-0 md:mx-6 lg:mx-8 lg:px-8 flex align-items-center justify-content-between relative lg:static mb-3">
                     <div class="col-12 lg:col-6 my-auto flex flex-column text-center lg:text-left lg:align-items-start">
                         <div class="flex align-items-center justify-content-center bg-yellow-200 align-self-center lg:align-self-start" style="width: 4.2rem; height: 4.2rem; border-radius: 10px">
-                            <i class="pi pi-fw pi-desktop text-5xl text-yellow-700"></i>
+                            <i class="pi pi-fw pi-map text-5xl text-yellow-700"></i>
                         </div>
-                        <h2 class="line-height-1 text-900 text-4xl font-normal">Celerisque Eu Ultrices</h2>
-                        <span class="text-700 text-2xl line-height-3 mr-0 md:mr-2" style="max-width: 650px"
-                            >Adipiscing commodo elit at imperdiet dui. Viverra nibh cras pulvinar mattis nunc sed blandit libero. Suspendisse in est ante in. Mauris pharetra et ultrices neque ornare aenean euismod elementum nisi.</span
-                        >
+                        <template v-if="datakodepos">
+                            <p class="text-700 text-2xl line-height-3 mr-0 md:mr-2" style="max-width: 400px"
+                            >Kode DAGRI: {{ datakodepos.kode_dagri }}</p>
+                            <p class="text-700 text-2xl line-height-3 mr-0 md:mr-2" style="max-width: 400px"
+                            >Kode MOD: {{ datakodepos.kode_mod }}</p>
+                            <p class="text-700 text-2xl line-height-3 mr-0 md:mr-2" style="max-width: 400px"
+                            >Kode New: {{ datakodepos.kode_new }}</p>
+                            <p class="text-700 text-2xl line-height-3 mr-0 md:mr-2" style="max-width: 400px"
+                            >Kode Old: {{ datakodepos.kode_old }}</p>
+                            <p class="text-700 text-2xl line-height-3 mr-0 md:mr-2" style="max-width: 400px"
+                            >Nama Desa: {{ datakodepos.nama_desa }}</p>
+                            <p class="text-700 text-2xl line-height-3 mr-0 md:mr-2" style="max-width: 400px"
+                            >Nama Kabupaten: {{ datakodepos.nama_kabupaten }}</p>
+                            <p class="text-700 text-2xl line-height-3 mr-0 md:mr-2" style="max-width: 400px"
+                            >Nama Kecamatan: {{ datakodepos.nama_kecamatan }}</p>
+                            <p class="text-700 text-2xl line-height-3 mr-0 md:mr-2" style="max-width: 400px"
+                            >Nama Provinsi: {{ datakodepos.nama_provinsi }}</p>
+                        </template>
                     </div>
 
-                    <div class="flex justify-content-end flex-order-1 sm:flex-order-2 col-12 lg:col-6 bg-yellow-100 p-0" style="border-radius: 8px">
-                        <img src="/demo/images/landing/mockup-desktop.svg" class="w-11" alt="mockup" />
+                    <div class="flex justify-content-end flex-order-1 sm:flex-order-2 col-12 lg:col-6 bg-yellow-100 p-0" style="border-radius: 8px; width: 425px; height: 425px;">
+                        <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://www.openstreetmap.org/export/embed.html?bbox=107.61741131544115%2C-6.903498350851165%2C107.61946588754655%2C-6.9017941794549715&amp;layer=mapnik" style="border: 1px solid black"></iframe>
                     </div>
+
                 </div>
             </div>
 
-            <div id="pricing" class="py-4 px-4 lg:px-8 my-2 md:my-4">
+            <!-- <div id="pricing" class="py-4 px-4 lg:px-8 my-2 md:my-4">
                 <div class="text-center">
                     <h2 class="text-900 font-normal mb-2">Matchless Pricing</h2>
                     <span class="text-600 text-2xl">Amet consectetur adipiscing elit...</span>
                 </div>
 
-                <div class="grid justify-content-between mt-8 md:mt-0">
-                    <div class="col-12 lg:col-4 p-0 md:p-3">
+                <div class="grid justify-content-between mt-8 md:mt-0"> -->
+                    <!-- <div class="col-12 lg:col-4 p-0 md:p-3">
                         <div class="p-3 flex flex-column border-200 pricing-card cursor-pointer border-2 hover:border-primary transition-duration-300 transition-all" style="border-radius: 10px">
                             <h3 class="text-900 text-center my-5">Free</h3>
                             <img src="/demo/images/landing/free.svg" class="w-10 h-10 mx-auto" alt="free" />
@@ -309,9 +354,9 @@ const redirectToRegister = () => {
                                 </li>
                             </ul>
                         </div>
-                    </div>
+                    </div> -->
 
-                    <div class="col-12 lg:col-4 p-0 md:p-3 mt-4 md:mt-0">
+                    <!-- <div class="col-12 lg:col-4 p-0 md:p-3 mt-4 md:mt-0">
                         <div class="p-3 flex flex-column border-200 pricing-card cursor-pointer border-2 hover:border-primary transition-duration-300 transition-all" style="border-radius: 10px">
                             <h3 class="text-900 text-center my-5">Startup</h3>
                             <img src="/demo/images/landing/startup.svg" class="w-10 h-10 mx-auto" alt="startup" />
@@ -340,9 +385,9 @@ const redirectToRegister = () => {
                                 </li>
                             </ul>
                         </div>
-                    </div>
+                    </div> -->
 
-                    <div class="col-12 lg:col-4 p-0 md:p-3 mt-4 md:mt-0">
+                    <!-- <div class="col-12 lg:col-4 p-0 md:p-3 mt-4 md:mt-0">
                         <div class="p-3 flex flex-column border-200 pricing-card cursor-pointer border-2 hover:border-primary transition-duration-300 transition-all" style="border-radius: 10px">
                             <h3 class="text-900 text-center my-5">Enterprise</h3>
                             <img src="/demo/images/landing/enterprise.svg" class="w-10 h-10 mx-auto" alt="enterprise" />
@@ -371,9 +416,9 @@ const redirectToRegister = () => {
                                 </li>
                             </ul>
                         </div>
-                    </div>
-                </div>
-            </div>
+                    </div> -->
+                <!-- </div>
+            </div> -->
 
             <div class="py-4 px-4 mx-0 mt-8 lg:mx-8">
                 <div class="grid justify-content-between">

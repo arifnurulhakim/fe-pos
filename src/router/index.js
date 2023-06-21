@@ -197,6 +197,13 @@ const router = createRouter({
             component: () => import('@/views/pages/Landing.vue')
         },
         {
+            path: '/detail/:provinsi/:kabupaten/:kecamatan/:desa',
+            name: 'detail',
+            component: () => import('@/views/pages/Detail.vue'),
+            props: true
+          },
+          
+        {
             path: '/pages/notfound',
             name: 'notfound',
             component: () => import('@/views/pages/NotFound.vue')

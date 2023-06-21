@@ -1,27 +1,122 @@
 <script setup>
 import { useLayout } from '@/layout/composables/layout';
-import { computed } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import AppConfig from '@/layout/AppConfig.vue';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
+
 const { layoutConfig } = useLayout();
 const router = useRouter();
+
+const selectedProvinsi = ref('');
+const selectedKabupaten = ref('');
+const selectedKecamatan = ref('');
+const selectedDesa = ref('');
+const provinsiList = ref([]);
+const kabupatenList = ref([]);
+const kecamatanList = ref([]);
+const desaList = ref([]);
+
 const smoothScroll = (id) => {
-    document.querySelector(id).scrollIntoView({
-        behavior: 'smooth'
-    });
+  document.querySelector(id).scrollIntoView({
+    behavior: 'smooth'
+  });
 };
 
 const logoUrl = computed(() => {
-    return router.resolve({ name: 'landing' }).href;
+  return router.resolve({ name: 'landing' }).href;
 });
+
 const redirectToLogin = () => {
-    router.push({ name: 'login' });
-};
-const redirectToRegister = () => {
-    router.push({ name: 'register' });
+  router.push({ name: 'login' });
 };
 
+const getProvinsi = () => {
+  axios
+    .get('/api/allprovinsi')
+    .then(response => {
+      provinsiList.value = response.data.data.map(provinsi => provinsi.nama_provinsi);
+    })
+    .catch(error => {
+      console.error(error);
+    });
+};
+
+const getKabupaten = () => {
+  selectedKabupaten.value = '';
+  selectedKecamatan.value = '';
+  selectedDesa.value = '';
+  kabupatenList.value = [];
+  kecamatanList.value = [];
+  desaList.value = [];
+
+  axios
+    .get(`/api/kode-pos/provinsi/${selectedProvinsi.value}`)
+    .then(response => {
+      kabupatenList.value = response.data.data.map(kabupaten => kabupaten.nama_kabupaten);
+    })
+    .catch(error => {
+      console.error(error);
+    });
+};
+
+const getKecamatan = () => {
+  selectedKecamatan.value = '';
+  selectedDesa.value = '';
+  kecamatanList.value = [];
+  desaList.value = [];
+
+  axios
+    .get(`/api/kode-pos/${selectedProvinsi.value}/${selectedKabupaten.value}`)
+    .then(response => {
+      kecamatanList.value = response.data.data.map(kecamatan => kecamatan.nama_kecamatan);
+    })
+    .catch(error => {
+      console.error(error);
+    });
+};
+
+const getDesa = () => {
+  selectedDesa.value = '';
+  desaList.value = [];
+
+  axios
+    .get(`/api/kode-pos/${selectedProvinsi.value}/${selectedKabupaten.value}/${selectedKecamatan.value}`)
+    .then(response => {
+      desaList.value = response.data.data.map(desa => desa.nama_desa);
+    })
+    .catch(error => {
+      console.error(error);
+    });
+};
+
+const submitForm = () => {
+  const provinsi = selectedProvinsi.value;
+  const kabupaten = selectedKabupaten.value;
+  const kecamatan = selectedKecamatan.value;
+  const desa = selectedDesa.value;
+
+  router.push({ name: 'detail', params: { provinsi, kabupaten, kecamatan, desa } });
+};
+
+
+onMounted(() => {
+  getProvinsi();
+});
+
+watch(selectedProvinsi, () => {
+  getKabupaten();
+});
+
+watch(selectedKabupaten, () => {
+  getKecamatan();
+});
+
+watch(selectedKecamatan, () => {
+  getDesa();
+});
 </script>
+
 
 <template>
     <div class="surface-0 flex justify-content-center">
@@ -39,7 +134,7 @@ const redirectToRegister = () => {
                 </a>
                 <div class="align-items-center surface-0 flex-grow-1 justify-content-between hidden lg:flex absolute lg:static w-full left-0 px-6 lg:px-0 z-2" style="top: 120px">
                     <ul class="list-none p-0 m-0 flex lg:align-items-center select-none flex-column lg:flex-row cursor-pointer">
-                        <li>
+                        <!-- <li>
                             <a @click="smoothScroll('#hero')" class="flex m-0 md:ml-5 px-0 py-3 text-900 font-medium line-height-3 p-ripple" v-ripple>
                                 <span>Home</span>
                             </a>
@@ -58,14 +153,14 @@ const redirectToRegister = () => {
                             <a @click="smoothScroll('#pricing')" class="flex m-0 md:ml-5 px-0 py-3 text-900 font-medium line-height-3 p-ripple" v-ripple>
                                 <span>Pricing</span>
                             </a>
-                        </li>
+                        </li> -->
                     </ul>
                     <div class="flex justify-content-between lg:block border-top-1 lg:border-top-none surface-border py-3 lg:py-0 mt-3 lg:mt-0">
-                        <Button label="Login" :onClick="redirectToLogin" class="p-button-text p-button-rounded border-none font-light line-height-2 text-blue-500"></Button>
+                        <Button label="Login" :onClick="redirectToLogin" class="p-button-rounded border-none ml-5 font-light text-white line-height-2 bg-blue-500"></Button>
 
 
 
-                        <Button label="Register" :onClick="redirectToRegister" class="p-button-rounded border-none ml-5 font-light text-white line-height-2 bg-blue-500"></Button>
+                        <!-- <Button label="Register" :onClick="redirectToRegister" class="p-button-rounded border-none ml-5 font-light text-white line-height-2 bg-blue-500"></Button> -->
                     </div>
                 </div>
             </div>
@@ -78,14 +173,39 @@ const redirectToRegister = () => {
                 <div class="mx-4 md:mx-8 mt-0 md:mt-4">
                     <h1 class="text-6xl font-bold text-gray-900 line-height-2"><span class="font-light block">Eu sem integer</span>eget magna fermentum</h1>
                     <p class="font-normal text-2xl line-height-3 md:mt-3 text-gray-700">Sed blandit libero volutpat sed cras. Fames ac turpis egestas integer. Placerat in egestas erat...</p>
-                    <Button label="Get Started" class="p-button-rounded text-xl border-none mt-5 bg-blue-500 font-normal text-white line-height-3 px-3"></Button>
+                    <div class="card pt-1 pb-1 pr-1 pl-1 inline-flex items-center justify-center h-auto rounded-full text-center" style="border-radius: 100px;">
+
+                        <input type="text" list="provinsiOptions" v-model="selectedProvinsi" @input="getKabupaten" placeholder="Provinsi" class=" border-none m-0 font-normal line-height-3  m-1 p-0 rounded-full text-center" style="border-radius: 100px;">
+                        <datalist id="provinsiOptions">
+                            <option v-for="provinsi in provinsiList" :value="provinsi">{{ provinsi }}</option>
+                        </datalist>
+                        
+                        <input type="text" list="kabupatenOptions" v-model="selectedKabupaten" @input="getKecamatan" placeholder="Kabupaten" class=" border-none m-0 font-normal line-height-3 m-1 p-0 rounded-full text-center" style="border-radius: 100px;">
+                        <datalist id="kabupatenOptions">
+                            <option v-for="kabupaten in kabupatenList" :value="kabupaten">{{ kabupaten }}</option>
+                        </datalist>
+                        
+                        <input type="text" list="kecamatanOptions" v-model="selectedKecamatan" @input="getDesa" placeholder="Kecamatan" class=" border-none m-0 font-normal line-height-3  m-1  p-0 rounded-full text-center" style="border-radius: 100px;">
+                        <datalist id="kecamatanOptions">
+                            <option v-for="kecamatan in kecamatanList" :value="kecamatan">{{ kecamatan }}</option>
+                        </datalist>
+
+                        <input type="text" list="desaOptions" v-model="selectedDesa" placeholder="Desa" class=" border-none m-0 font-normal line-height-3  m-1  p-0 rounded-full text-center" style="border-radius: 100px;">
+                        <datalist id="desaOptions">
+                            <option v-for="desa in desaList" :value="desa">{{ desa }}</option>
+                        </datalist>
+                        
+
+                        <Button  class="p-button-rounded text-xl border-none m-0 bg-blue-500 font-normal text-white line-height-3 px-3" @click="submitForm"><i class="pi pi-search" style="font-size: 2rem"></i> </Button>              
+                    </div>
+
                 </div>
                 <div class="flex justify-content-center md:justify-content-end">
                     <img src="/demo/images/landing/screen-1.png" alt="Hero Image" class="w-9 md:w-auto" />
                 </div>
             </div>
 
-            <div id="features" class="py-4 px-4 lg:px-8 mt-5 mx-0 lg:mx-8">
+            <!-- <div id="features" class="py-4 px-4 lg:px-8 mt-5 mx-0 lg:mx-8">
                 <div class="grid justify-content-center">
                     <div class="col-12 text-center mt-8 mb-4">
                         <h2 class="text-900 font-normal mb-2">Marvelous Features</h2>
@@ -232,7 +352,7 @@ const redirectToRegister = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <div id="highlights" class="py-4 px-4 lg:px-8 mx-0 my-6 lg:mx-8">
                 <div class="text-center">
@@ -273,14 +393,14 @@ const redirectToRegister = () => {
                 </div>
             </div>
 
-            <div id="pricing" class="py-4 px-4 lg:px-8 my-2 md:my-4">
+            <!-- <div id="pricing" class="py-4 px-4 lg:px-8 my-2 md:my-4">
                 <div class="text-center">
                     <h2 class="text-900 font-normal mb-2">Matchless Pricing</h2>
                     <span class="text-600 text-2xl">Amet consectetur adipiscing elit...</span>
                 </div>
 
-                <div class="grid justify-content-between mt-8 md:mt-0">
-                    <div class="col-12 lg:col-4 p-0 md:p-3">
+                <div class="grid justify-content-between mt-8 md:mt-0"> -->
+                    <!-- <div class="col-12 lg:col-4 p-0 md:p-3">
                         <div class="p-3 flex flex-column border-200 pricing-card cursor-pointer border-2 hover:border-primary transition-duration-300 transition-all" style="border-radius: 10px">
                             <h3 class="text-900 text-center my-5">Free</h3>
                             <img src="/demo/images/landing/free.svg" class="w-10 h-10 mx-auto" alt="free" />
@@ -309,9 +429,9 @@ const redirectToRegister = () => {
                                 </li>
                             </ul>
                         </div>
-                    </div>
+                    </div> -->
 
-                    <div class="col-12 lg:col-4 p-0 md:p-3 mt-4 md:mt-0">
+                    <!-- <div class="col-12 lg:col-4 p-0 md:p-3 mt-4 md:mt-0">
                         <div class="p-3 flex flex-column border-200 pricing-card cursor-pointer border-2 hover:border-primary transition-duration-300 transition-all" style="border-radius: 10px">
                             <h3 class="text-900 text-center my-5">Startup</h3>
                             <img src="/demo/images/landing/startup.svg" class="w-10 h-10 mx-auto" alt="startup" />
@@ -340,9 +460,9 @@ const redirectToRegister = () => {
                                 </li>
                             </ul>
                         </div>
-                    </div>
+                    </div> -->
 
-                    <div class="col-12 lg:col-4 p-0 md:p-3 mt-4 md:mt-0">
+                    <!-- <div class="col-12 lg:col-4 p-0 md:p-3 mt-4 md:mt-0">
                         <div class="p-3 flex flex-column border-200 pricing-card cursor-pointer border-2 hover:border-primary transition-duration-300 transition-all" style="border-radius: 10px">
                             <h3 class="text-900 text-center my-5">Enterprise</h3>
                             <img src="/demo/images/landing/enterprise.svg" class="w-10 h-10 mx-auto" alt="enterprise" />
@@ -371,9 +491,9 @@ const redirectToRegister = () => {
                                 </li>
                             </ul>
                         </div>
-                    </div>
-                </div>
-            </div>
+                    </div> -->
+                <!-- </div>
+            </div> -->
 
             <div class="py-4 px-4 mx-0 mt-8 lg:mx-8">
                 <div class="grid justify-content-between">
