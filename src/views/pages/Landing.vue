@@ -51,7 +51,7 @@ const getKabupaten = () => {
   desaList.value = [];
 
   axios
-    .get(`/api/kode-pos/provinsi/${selectedProvinsi.value}`)
+    .get(`/api/kode-pos/allprovinsi/${selectedProvinsi.value}`)
     .then(response => {
       kabupatenList.value = response.data.data.map(kabupaten => kabupaten.nama_kabupaten);
     })
