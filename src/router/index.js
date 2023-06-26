@@ -4,12 +4,11 @@ import AppLayout from '@/layout/AppLayout.vue';
 const router = createRouter({
     history: createWebHashHistory(),
     routes: [
-        
         {
             path: '/',
             redirect: '/landing',
             component: AppLayout,
- 
+
             children: [
                 {
                     path: '/dashboard',
@@ -172,7 +171,7 @@ const router = createRouter({
                 {
                     path: '/pages/pengiriman',
                     name: 'pengiriman',
-                    component: () => import('@/views/pages/Pengiriman.vue')
+                    component: () => import('@/views/pages/pengiriman.vue')
                 },
                 {
                     path: '/pages/user',
@@ -201,8 +200,8 @@ const router = createRouter({
             name: 'detail',
             component: () => import('@/views/pages/Detail.vue'),
             props: true
-          },
-          
+        },
+
         {
             path: '/pages/notfound',
             name: 'notfound',
